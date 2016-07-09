@@ -1,16 +1,4 @@
 import Connection from '@xmpp/connection'
-import url from 'url'
-
-// we ignore url module from the bundle to reduce its size
-function getHostname (uri) {
-  if (url.parse) {
-    return url.parse(uri).hostname
-  } else {
-    const el = document.createElement('a')
-    el.href = uri
-    return el.hostname
-  }
-}
 
 class Client extends Connection {
   constructor (options) {
@@ -38,25 +26,40 @@ class Client extends Connection {
       sock.on(e, (...args) => this.emit(e, ...args))
     })
 
-    return sock.connect(params)
+    return sock.connect(uri)
       .then(() => {
         this.uri = uri
         return params
       })
   }
 
-  open (domain, ...args) {
-    domain = domain || getHostname(this.uri)
-
-    return this.socket.open(domain, ...args)
+  open (...args) {
+    return this.socket.open(...args)
   }
 
-  get features () { // FIXME remove
-    return this.socket.features
+  close (...args) {
+    return this.socket.close(...args)
   }
+
+  end (...args) {
+    return this.socket.end(...args)
+  }
+
+  connect (...args) {
+    return this.socket.start(...args)
+  }
+
+  stop (...args) {
+    return this.socket.stop(...args)
+  }
+
+  // open (domain, ...args) {
+  //   domain = domain || getHostname(this.uri)
+
+  //   return this.socket.open(domain, ...args)
+  // }
 }
 
 Client.prototype.NS = 'jabber:client'
 
-export {getHostname}
 export default Client

@@ -1,6 +1,18 @@
 import EventEmitter from 'events'
 import StreamParser from '@xmpp/streamparser'
 import JID from '@xmpp/jid'
+import url from 'url'
+
+// we ignore url module from the bundle to reduce its size
+function getHostname (uri) {
+  if (url.parse) {
+    return url.parse(uri).hostname
+  } else {
+    const el = document.createElement('a')
+    el.href = uri
+    return el.hostname
+  }
+}
 
 class Connection extends EventEmitter {
   constructor (options) {
@@ -14,6 +26,25 @@ class Connection extends EventEmitter {
     if (this.Socket && this.Parser) {
       this._handle(new this.Socket(), new this.Parser())
     }
+  }
+
+  start (options) {
+    if (typeof options === 'string') {
+      options = {uri: options}
+    }
+
+    if (!options.domain) {
+      options.domain = getHostname(options.uri)
+    }
+
+    this.options = options
+    return this.connect(this.options.uri)
+      .then(() => this.open(this.options.domain, this.options.lang))
+  }
+
+  stop () {
+    return this.end()
+      .then(() => this.close())
   }
 
   _handle (socket, parser) {
@@ -83,7 +114,6 @@ class Connection extends EventEmitter {
 
         this.once('nonza', el => {
           if (el.name !== 'stream:features') return // FIXME error
-          this.features = el
           this.emit('features', el)
           resolve(attrs, name, el)
         })
@@ -99,6 +129,26 @@ class Connection extends EventEmitter {
   restart (...args) {
     return this.open(...args)
   }
+
+  // _write_catch (data) {
+  //   // FIXME timeout
+  //   return new Promise((resolve, reject) => {
+  //     this.once('element', (el) => {
+  //       resolve(el)
+  //     })
+  //     this.write(data).catch(reject)
+  //   })
+  // }
+
+  // _send_catch (data) {
+  //   // FIXME timeout
+  //   return new Promise((resolve, reject) => {
+  //     this.once('element', (el) => {
+  //       resolve(el)
+  //     })
+  //     this.send(data).catch(reject)
+  //   })
+  // }
 
   send (element) {
     element = element.root()
@@ -134,6 +184,10 @@ class Connection extends EventEmitter {
     return !this.isStanza(element)
   }
 
+  end () {
+    return this.write(this.footer())
+  }
+
   close () {
     return new Promise((resolve, reject) => {
       // TODO timeout
@@ -142,7 +196,6 @@ class Connection extends EventEmitter {
         this.once('close', resolve)
       }
       this.parser.once('end', handler)
-      this.write(this.footer())
     })
   }
 
@@ -165,3 +218,4 @@ Connection.prototype.Socket = null
 Connection.prototype.Parser = StreamParser
 
 export default Connection
+export {getHostname, Connection}
