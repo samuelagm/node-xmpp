@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@xmpp/connection": "^0.0.0",
+    "@xmpp/xml": "^0.0.0",
     "ws": "^1.1.0"
   }
 }

@@ -45,10 +45,6 @@ class Client extends Connection {
     return this.socket.end(...args)
   }
 
-  connect (...args) {
-    return this.socket.start(...args)
-  }
-
   stop (...args) {
     return this.socket.stop(...args)
   }
