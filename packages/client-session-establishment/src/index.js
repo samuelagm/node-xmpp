@@ -6,37 +6,40 @@
  */
 
 import {request} from '@xmpp/client-iq-caller'
-import {register} from '@xmpp/client-stream-features'
 
-export const name = 'session-establisment'
+const NS = 'urn:ietf:params:xml:ns:xmpp-session'
 
-export const NS = 'urn:ietf:params:xml:ns:xmpp-session'
-
-export function isSupported (features) {
+function match (features) {
   return features.getChild('session', NS)
 }
 
-export function isOptional (el) {
+function isOptional (el) {
   return el.getChild('optional')
 }
 
-export function establishSession (client, cb) {
+function establishSession (client) {
   const stanza = (
     <iq type='set'>
       <session xmlns={NS}/>
     </iq>
   )
-  return request(client, stanza, cb)
+  return request(client, stanza, {next: true})
 }
 
-export function plugin (client) {
-  // TODO priority, order? this is to be done after resource binding
-  register(client, (features, done) => {
-    const support = isSupported(features)
-    if (!support || isOptional(support)) {
-      return done()
-    }
-
-    establishSession(client, done)
-  })
+function plugin (client) {
+  console.log('foo')
+  if (client.registerStreamFeature) {
+    client.registerStreamFeature(streamFeature)
+  }
 }
+
+const streamFeature = {
+  priority: 2250,
+  match,
+  run: (client) => {
+    // FIXME only do if optional ?
+    return establishSession(client)
+  }
+}
+
+export default {NS, establishSession, isOptional, match, plugin, streamFeature}

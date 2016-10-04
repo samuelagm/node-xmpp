@@ -12,7 +12,8 @@ const NS_FRAMING = 'urn:ietf:params:xml:ns:xmpp-framing'
 class WebSocket extends Connection {
   // https://tools.ietf.org/html/rfc7395#section-3.4
   waitHeader (domain, lang, fn) {
-    const handler = ({name, attrs}) => {
+    const handler = (el) => {
+      const {name, attrs} = el
       // FIXME error
       if (name !== 'open') return
       if (attrs.version !== '1.0') return
@@ -20,7 +21,7 @@ class WebSocket extends Connection {
       if (attrs.from !== domain) return
       if (!attrs.id) return
       // if (!match(el, <open version='1.0' xmlns={NS_FRAMING} from={domain}/>)) return
-      fn(null, attrs, name)
+      fn(null, el)
     }
     this.parser.once('element', handler)
   }

@@ -26,7 +26,6 @@ function getBestMechanism (SASL, mechs, features) {
 function authenticate (client, credentials, features) {
   const mech = getBestMechanism(client.SASL, client.options.sasl, features)
   if (!mech) return Promise.reject('no compatible mechanism')
-  console.log(client.options)
   const {domain} = client.options
   const creds = {}
   Object.assign(creds, {
@@ -57,7 +56,7 @@ function authenticate (client, credentials, features) {
       if (element.name === 'failure') {
         reject()
       } else if (element.name === 'success') {
-        resolve(client.restart())
+        resolve()
       }
 
       client.removeListener('nonza', handler)
@@ -74,15 +73,12 @@ function authenticate (client, credentials, features) {
   })
 }
 
-function match (features) {
+function match (features, client) {
   return features.getChild('mechanisms', NS)
 }
 
-// export const authenticator = {authenticate, match, name: 'SASL'}
-
 function plugin (client) {
   client.SASL = new SASLFactory()
-  // client.authenticators.push(authenticator)
 
   if (client.registerStreamFeature) {
     client.registerStreamFeature(streamFeature)
@@ -92,6 +88,7 @@ function plugin (client) {
 const streamFeature = {
   priority: 1000,
   match,
+  restart: true,
   run: (client, features) => {
     const credentials = {
       username: client.options.username,
@@ -101,5 +98,4 @@ const streamFeature = {
   }
 }
 
-export default plugin
-export {NS, getBestMechanism, authenticate, match, plugin, streamFeature}
+export default {NS, getBestMechanism, authenticate, match, plugin, streamFeature}

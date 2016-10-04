@@ -1,6 +1,10 @@
 import _Client from '@xmpp/client-core'
 import plugins from './plugins'
 
+import {addAuthenticator} from '@xmpp/client-authentication'
+import sasl from '@xmpp/client-sasl'
+import legacy_authentication from '@xmpp/client-legacy-authentication'
+
 // import {bindStreamFeature} from '@xmpp/client-bind'
 // import {SASLStreamFeature} from '@xmpp/client-sasl'
 // import {legacyAuthenticationStreamFeature} from '@xmpp/client-legacy-authentication'
@@ -9,12 +13,17 @@ class Client extends _Client {
   constructor () {
     super()
     // TODO move to client-connection ?
-    plugins.forEach(plugin => {
+      Object.keys(plugins).forEach(name => {
+        const plugin = plugins[name]
       // plugin = require('@xmpp/client-' + plugin)
       // // ignored by bundler
       // if (typeof plugin !== 'function' || Object.keys(plugin) === 0) return
       if (typeof plugin === 'function') this.use(plugin)
+      else if (plugin && typeof plugin.plugin === 'function') this.use(plugin.plugin)
     })
+
+    addAuthenticator(this, sasl)
+    addAuthenticator(this, legacy_authentication)
   }
 
   // // TODO move to a plugin ?

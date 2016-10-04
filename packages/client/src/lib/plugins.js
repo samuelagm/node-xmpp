@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 
-// import authentication from '@xmpp/client-authentication'
 import stream_features from '@xmpp/client-stream-features'
+import authentication from '@xmpp/client-authentication'
 import bind from '@xmpp/client-bind'
 import sasl from '@xmpp/client-sasl'
 import sasl_anonymous from '@xmpp/client-sasl-anonymous'
@@ -17,11 +17,11 @@ import bosh from '@xmpp/client-bosh'
 import tcp from '@xmpp/client-tcp'
 import http from '@xmpp/client-http'
 import alternative_connection_methods_http from '@xmpp/client-alternative-connection-methods-http'
-// import session_establisment from '@xmpp/client-session-establishment'
+import session_establisment from '@xmpp/client-session-establishment'
 
-export default [
-  // authentication,
+export default {
   stream_features,
+  authentication,
   bind,
   sasl,
   sasl_anonymous,
@@ -36,8 +36,8 @@ export default [
   bosh,
   tcp,
   http,
-  alternative_connection_methods_http
-  // session_establisment
+  alternative_connection_methods_http,
+  session_establisment,
 // TODO
 // require('@xmpp/client-reconnect')
 // require('@xmpp/client-alternative-connection-methods-srv')
@@ -47,4 +47,4 @@ export default [
 // require('@xmpp/srv')
 // require('@xmpp/client-promise')
 // require('@xmpp/client-ping')
-]
+}

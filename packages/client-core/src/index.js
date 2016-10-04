@@ -48,12 +48,6 @@ class Client extends Connection {
   stop (...args) {
     return this.socket.stop(...args)
   }
-
-  // open (domain, ...args) {
-  //   domain = domain || getHostname(this.uri)
-
-  //   return this.socket.open(domain, ...args)
-  // }
 }
 
 Client.prototype.NS = 'jabber:client'

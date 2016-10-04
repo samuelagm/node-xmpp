@@ -1,7 +1,7 @@
 import {Socket} from 'net'
 import Connection from '@xmpp/connection'
 import StreamParser from './lib/StreamParser'
-import {tagString} from '@xmpp/xml'
+import {tagString, Element} from '@xmpp/xml'
 
 const NS_STREAM = 'http://etherx.jabber.org/streams'
 
@@ -20,7 +20,7 @@ class TCP extends Connection {
       if (attrs['xmlns:stream'] !== NS_STREAM) return // FIXME error
       if (attrs.from !== domain) return // FIXME error
       if (!attrs.id) return // FIXME error
-      fn(null, attrs, name)
+      fn(null, new Element(name, attrs))
     }
     this.parser.once('startElement', handler)
   }

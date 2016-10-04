@@ -18,7 +18,8 @@ class Connection extends EventEmitter {
   constructor (options) {
     super()
     this.online = false
-    this._domain = ''
+    this._domain = null
+    this.lang = null
     this.jid = null
     this.options = typeof options === 'object' ? options : {}
     this.plugins = []
@@ -26,20 +27,6 @@ class Connection extends EventEmitter {
     if (this.Socket && this.Parser) {
       this._handle(new this.Socket(), new this.Parser())
     }
-  }
-
-  start (options) {
-    if (typeof options === 'string') {
-      options = {uri: options}
-    }
-
-    if (!options.domain) {
-      options.domain = getHostname(options.uri)
-    }
-
-    this.options = options
-    return this.connect(this.options.uri)
-      .then(() => this.open(this.options.domain, this.options.lang))
   }
 
   stop () {
@@ -84,17 +71,41 @@ class Connection extends EventEmitter {
     parser.on('error', errorListener)
   }
 
-  _online (jid) {
+  _jid (jid) {
     jid = JID(jid)
-    this.emit('online', jid)
     this.jid = jid
     return jid
+  }
+
+  _online () {
+    this.emit('online', this.jid)
   }
 
   id () {
     return Math.random().toString().split('0.')[1]
   }
 
+  /**
+   * opens the socket then opens the stream
+   */
+  start(options) {
+    if (typeof options === 'string') {
+      options = {uri: options}
+    }
+
+    if (!options.domain) {
+      options.domain = getHostname(options.uri)
+    }
+
+    return this.connect(options.uri)
+      .then(() => {
+        return this.open(options.domain, options.lang)
+      })
+  }
+
+  /**
+   * opens the socket
+   */
   connect (options) {
     return new Promise((resolve, reject) => {
       this.socket.connect(options, (err) => {
@@ -104,51 +115,29 @@ class Connection extends EventEmitter {
     })
   }
 
+  /**
+   * opens the stream
+   */
   open (domain, lang = 'en') {
     return new Promise((resolve, reject) => {
       // FIXME timeout
-      this.waitHeader(domain, lang, (err, attrs, name) => {
+      this.waitHeader(domain, lang, (err, el) => {
         if (err) return reject(err)
         this._domain = domain
-        this.emit('open')
-
-        this.once('nonza', el => {
-          if (el.name !== 'stream:features') return // FIXME error
-          this.emit('features', el)
-          resolve(attrs, name, el)
-        })
-
-        // FIXME that's not guaranteed...
-        // component doesn't use features...
-        process.nextTick(() => resolve(attrs, name))
+        this.lang = lang
+        this.emit('open', el)
+        resolve(el)
       })
       this.write(this.header(domain, lang))
     })
   }
 
-  restart (...args) {
-    return this.open(...args)
+  /**
+   * restarts the stream
+   */
+  restart () {
+    return this.open('localhost', this.lang)
   }
-
-  // _write_catch (data) {
-  //   // FIXME timeout
-  //   return new Promise((resolve, reject) => {
-  //     this.once('element', (el) => {
-  //       resolve(el)
-  //     })
-  //     this.write(data).catch(reject)
-  //   })
-  // }
-
-  // _send_catch (data) {
-  //   // FIXME timeout
-  //   return new Promise((resolve, reject) => {
-  //     this.once('element', (el) => {
-  //       resolve(el)
-  //     })
-  //     this.send(data).catch(reject)
-  //   })
-  // }
 
   send (element) {
     element = element.root()
@@ -162,6 +151,15 @@ class Connection extends EventEmitter {
     return this.write(element)
   }
 
+  send_receive (element) {
+    return new Promise((resolve, reject) => {
+      this.once('element', resolve)
+      this.send(element)
+        .then(resolve)
+        .catch(reject)
+    })
+  }
+
   write (data) {
     return new Promise((resolve, reject) => {
       data = data.toString('utf8').trim()
@@ -170,6 +168,15 @@ class Connection extends EventEmitter {
         this.emit('fragment', data)
         resolve()
       })
+    })
+  }
+
+  write_receive (data) {
+    return new Promise((resolve, reject) => {
+      this.once('element', resolve)
+      this.write(data)
+        .then(resolve)
+        .catch(reject)
     })
   }
 

@@ -1,6 +1,6 @@
-import ltx, {Element, parse, nameEqual, escapeXML} from 'ltx'
+import ltx, {Element, parse, nameEqual, tagString} from 'ltx'
 
-export {Element, parse}
+export {Element, parse, tagString}
 
 // https://github.com/node-xmpp/ltx/pull/96
 export function match (a, b) {

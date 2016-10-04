@@ -4,6 +4,7 @@
  */
 
 // FIXME let's not use client-iq-caller here
+// bind is not really an iq
 import {request} from '@xmpp/client-iq-caller'
 
 const NS = 'urn:ietf:params:xml:ns:xmpp-bind'
@@ -28,23 +29,19 @@ function match (features) {
 function bind (client, resource) {
   return request(client, stanza(resource), {next: true})
     .then(result => {
-      return client._online(result.getChild('jid').text())
+      return client._jid(result.getChild('jid').text())
     })
 }
 
-function clientBind (...args) {
-  bind(this, ...args)
-}
-
 function plugin (client) {
-  client.bind = clientBind
+  // FIXME require plugin instead ?
   if (client.registerStreamFeature) {
     client.registerStreamFeature(streamFeature)
   }
 }
 
 const streamFeature = {
-  priority: 2000,
+  priority: 2500,
   match: match,
   run: (client) => {
     return bind(client, client.options.resource)
@@ -52,4 +49,4 @@ const streamFeature = {
 }
 
 export default plugin
-export {NS, stanza, match, bind, clientBind, plugin, streamFeature}
+export {NS, stanza, match, bind, plugin, streamFeature}
