@@ -89,18 +89,26 @@ class Connection extends EventEmitter {
    * opens the socket then opens the stream
    */
   start (options) {
-    if (typeof options === 'string') {
-      options = {uri: options}
-    }
+    return new Promise((resolve, reject) => {
+      if (typeof options === 'string') {
+        options = {uri: options}
+      }
 
-    if (!options.domain) {
-      options.domain = getHostname(options.uri)
-    }
+      if (!options.domain) {
+        options.domain = getHostname(options.uri)
+      }
 
-    return this.connect(options.uri)
-      .then(() => {
-        return this.open(options.domain, options.lang)
-      })
+      this.connect(options.uri)
+        .then(() => {
+          this.open(options.domain, options.lang)
+            .then(() => {
+              // FIXME reject on error ?
+              this.once('online', resolve)
+            })
+            .catch(reject)
+        })
+        .catch(reject)
+    })
   }
 
   /**
