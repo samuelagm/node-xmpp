@@ -76,7 +76,7 @@ client.on('features', el => {
 
 client.on('authenticate', authenticate => {
   console.log('authentication')
-  authenticate('sonny', 'foobar')
+  authenticate('node-xmpp', 'foobar')
     .then(() => {
       console.log('authenticated')
     })

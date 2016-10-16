@@ -35,13 +35,13 @@ client.on('stanza', () => {})
 // emitted for any incoming nonza
 client.on('nonza', () => {})
 
-const password = 'mysecretcomponentpassword'
+const password = 'foobar'
 
 client.on('fragment', (output, input) => {
   console.log(output ? '=>' : '<=', output || input)
 })
 
-client.start('component.localhost:5269')
+client.start('xmpp:component.localhost:5269')
   .then(() => client.open('component.localhost'))
   .then(() => client.authenticate(password))
   .then((jid) => {

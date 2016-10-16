@@ -1,13 +1,13 @@
 import test from 'ava'
 import {match, stanza, plugin} from './src'
 
-test('plugin', t => {
+test.skip('plugin', t => {
   const client = {}
   plugin(client)
   t.true(typeof client.bind === 'function')
 })
 
-test('match()', t => {
+test.skip('match()', t => {
   const features = <features/>
   t.is(match(features), undefined)
 
@@ -16,7 +16,7 @@ test('match()', t => {
   t.is(match(features), bind)
 })
 
-test('stanza()', t => {
+test.skip('stanza()', t => {
   t.deepEqual(stanza(), (
     <iq type='set'>
       <bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'/>

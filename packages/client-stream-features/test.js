@@ -1,7 +1,7 @@
 import test from 'ava'
 import * as stream_features from './src/index'
 
-test('selectFeature', t => {
+test.skip('selectFeature', t => {
   const features = []
   features.push({
     priority: 1000,

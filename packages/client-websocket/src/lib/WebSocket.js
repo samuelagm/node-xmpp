@@ -39,7 +39,7 @@ class WebSocket extends Connection {
   }
 
   static match (uri) {
-    return typeof uri === 'string' && uri.match(/^wss?:\/\//) ? uri : null
+    return uri.match(/^wss?:\/\//) ? uri : null
   }
 }
 

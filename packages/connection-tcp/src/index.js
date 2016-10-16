@@ -47,7 +47,7 @@ class TCP extends Connection {
   }
 
   static match (uri) {
-    return uri.startsWith('xmpp:') ? uri : false
+    return uri.startsWith('xmpp:') ? uri : null
   }
 }
 
@@ -56,4 +56,3 @@ TCP.prototype.Parser = StreamParser
 
 export default TCP
 export {NS_STREAM}
-

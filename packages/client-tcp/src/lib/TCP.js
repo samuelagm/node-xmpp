@@ -7,9 +7,8 @@ class TCP extends Connection {
     return super.connect({port: port || 5222, hostname})
   }
 
-
   static match (uri) {
-    return uri.startsWith('xmpp:') ? uri : false
+    return uri.startsWith('xmpp:') ? uri : null
   }
 }
 

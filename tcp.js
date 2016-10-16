@@ -56,7 +56,7 @@ client.on('fragment', (output, input) => {
   console.log(output ? '=>' : '<=', output || input)
 })
 
-client.start('ws://localhost:5280/xmpp-websocket')
+client.start('xmpp://localhost:5280/xmpp-websocket')
   .catch(err => {
     console.error(err)
   })
@@ -76,7 +76,7 @@ client.on('features', el => {
 
 client.on('authenticate', authenticate => {
   console.log('authentication')
-  authenticate('sonny', 'foobar')
+  authenticate('node-xmpp', 'foobar')
     .then(() => {
       console.log('authenticated')
     })
