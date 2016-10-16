@@ -32,6 +32,7 @@ function StreamParser (options) {
     // TODO: refuse anything but <stream:stream>
     if (!self.element && (name === 'stream:stream')) {
       self.emit('streamStart', attrs)
+      self.emit('startElement', name, attrs)
     } else {
       var child
       if (!self.element) {
@@ -55,6 +56,7 @@ function StreamParser (options) {
       if (self.element.parent) {
         self.element = self.element.parent
       } else {
+        self.emit('element', self.element)
         /* Stanza complete */
         self.emit('stanza', self.element)
         delete self.element

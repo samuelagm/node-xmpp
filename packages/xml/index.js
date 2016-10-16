@@ -2,6 +2,7 @@
 
 var ltx = require('ltx')
 
+module.exports.ltx = ltx
 module.exports.IQ = require('./lib/IQ')
 module.exports.Message = require('./lib/Message')
 module.exports.Presence = require('./lib/Presence')
@@ -23,4 +24,5 @@ module.exports.nameEqual = ltx.nameEqual
 module.exports.attrsEqual = ltx.attrsEqual
 module.exports.childrenEqual = ltx.childrenEqual
 
-module.exports.ltx = ltx
+module.exports.tag = ltx.tag
+module.exports.tagString = ltx.tagString
