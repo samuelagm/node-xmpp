@@ -57,7 +57,6 @@ function StreamParser (options) {
       self.emit('endElement', name)
     }
 
-
     if (!self.element && (name === 'stream:stream')) {
       self.end()
     } else if (self.element && (name === self.element.name)) {
