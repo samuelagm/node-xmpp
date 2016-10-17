@@ -3,6 +3,12 @@ const StreamParser = require('@xmpp/streamparser')
 const JID = require('@xmpp/jid')
 const url = require('url')
 
+function error (name, message) {
+  const e = new Error(message)
+  e.name = name
+  return e
+}
+
 // we ignore url module from the browser bundle to reduce its size
 function getHostname (uri) {
   if (url.parse) {
@@ -21,6 +27,7 @@ class Connection extends EventEmitter {
     this._domain = null
     this.lang = null
     this.jid = null
+    this.timeout = 2000
     this.options = typeof options === 'object' ? options : {}
     this.plugins = []
 
@@ -64,6 +71,11 @@ class Connection extends EventEmitter {
     // parser
     this.parser = parser
     const elementListener = (element) => {
+      if (element.name === 'stream:error') {
+        const condition = element.children[0].name
+        const textEl = element.getChild('text', 'urn:ietf:params:xml:ns:xmpp-streams')
+        this.emit('error', error(condition, textEl.text()))
+      }
       this.emit('element', element)
       this.emit(this.isStanza(element) ? 'stanza' : 'nonza', element)
     }
@@ -77,8 +89,16 @@ class Connection extends EventEmitter {
     return jid
   }
 
+  _ready () {
+    this.emit('ready', this.jid)
+  }
+
   _online () {
     this.emit('online', this.jid)
+  }
+
+  _authenticated () {
+    this.emit('authenticated')
   }
 
   id () {
@@ -103,11 +123,9 @@ class Connection extends EventEmitter {
           this.open(options.domain, options.lang)
             .then(() => {
               // FIXME reject on error ?
-              this.once('online', resolve)
-            })
-            .catch(reject)
-        })
-        .catch(reject)
+              this.once('ready', resolve)
+            }, reject)
+        }, reject)
     })
   }
 
@@ -147,23 +165,54 @@ class Connection extends EventEmitter {
     return this.open(this.socket._domain, this.socket.lang)
   }
 
-  send (element) {
-    element = element.root()
-
-    const {name} = element
-    const NS = element.getNS()
-    if (NS !== this.NS && name === 'iq' || name === 'message' || name === 'presence') {
-      element.attrs.xmlns = this.NS
-    }
-
-    return this.write(element)
+  _promise (event, timeout) {
+    return new Promise((resolve, reject) => {
+      let timer
+      const cleanup = () => {
+        this.removeListener(event, onEvent)
+        this.removeListener('error', onError)
+        clearTimeout(timer)
+      }
+      if (typeof timeout === 'number') {
+        timer = setTimeout(() => {
+          reject(error(
+            'TimeoutError',
+            `"${event}" event didn't fire within ${timeout}ms`
+          ))
+          cleanup()
+        }, timeout)
+      }
+      const onError = (reason) => {
+        reject(reason)
+        cleanup()
+      }
+      const onEvent = (value) => {
+        resolve(value)
+        cleanup()
+      }
+      this.once('error', onError)
+      this.once(event, onEvent)
+    })
   }
 
-  send_receive (element) {
+  send (element) {
     return new Promise((resolve, reject) => {
-      this.once('element', resolve)
-      this.send(element)
-        .catch(reject)
+      element = element.root()
+
+      const {name} = element
+      const NS = element.getNS()
+      if (NS !== this.NS && name === 'iq' || name === 'message' || name === 'presence') {
+        element.attrs.xmlns = this.NS
+      }
+
+      this.write(element).then(resolve, reject)
+    })
+  }
+
+  send_receive (element, timeout = this.timeout) {
+    return new Promise((resolve, reject) => {
+      this.send(element).catch(reject)
+      this._promise('element', timeout).then(resolve, reject)
     })
   }
 
@@ -178,11 +227,11 @@ class Connection extends EventEmitter {
     })
   }
 
-  write_receive (data) {
+  // FIXME maybe move to connection-tcp
+  write_receive (data, timeout = this.timeout) {
     return new Promise((resolve, reject) => {
-      this.once('element', resolve)
-      this.write(data)
-        .catch(reject)
+      this.write(data).catch(reject)
+      this._promise('element', timeout).then(resolve, reject)
     })
   }
 

@@ -47,8 +47,12 @@ class Component extends Connection {
     hash.update(this.id + password, 'binary')
     return this.send_receive(tag`<handshake>${hash.digest('hex')}</handshake>`)
       .then((el) => {
-        if (el.name !== 'handshake') throw el
+        if (el.name !== 'handshake') {
+          throw new Error('unexpected stanza')
+        }
+        this._authenticated()
         this._jid(this._domain)
+        this._ready()
         this._online() // FIXME should be emitted after promise resolve
       })
   }

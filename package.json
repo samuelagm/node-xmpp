@@ -1,6 +1,7 @@
 {
   "private": true,
   "devDependencies": {
+    "ava": "^0.16.0",
     "browserify": "^13.0.1",
     "coveralls": "^2.11.8",
     "istanbul": "^0.4.2",
@@ -14,6 +15,7 @@
     "standard": "^7.1.1"
   },
   "scripts": {
+    "ava": "ava",
     "postinstall": "npm run bootstrap",
     "lint": "standard",
     "unit": "mocha --recursive packages/*/test/ -t 5000",
@@ -24,5 +26,12 @@
     "coverage": "istanbul cover _mocha --report lcovonly -- -R spec --recursive packages/*/test/ -t 5000",
     "coveralls": "cat ./coverage/lcov.info | coveralls && rm -rf ./coverage",
     "test:browser": "phantomjs ./node_modules/mocha-phantomjs-core/mocha-phantomjs-core.js http://localhost:8000/test/browser/ spec '{\"ignoreResourceErrors\": true}'"
+  },
+  "ava": {
+    "require": "babel-register",
+    "babel": "inherit",
+    "files": [
+      "packages/*/ava/**/*.js"
+    ]
   }
 }

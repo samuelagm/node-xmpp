@@ -10,6 +10,7 @@ const NS_STREAM = 'http://etherx.jabber.org/streams'
 */
 
 class TCP extends Connection {
+  // FIXME is lang useful?
   // https://xmpp.org/rfcs/rfc6120.html#streams-open
   waitHeader (domain, lang, fn) {
     const handler = (name, attrs) => {
